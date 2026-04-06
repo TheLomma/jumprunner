@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  function startGame<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -94,7 +94,7 @@ btn, .playBtn {
 <div id="ui">
   <div id="screen-menu">
     <h1>JUMP RUNNER</h1>
-    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.1</div>
+    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.3</div>
     <p id="menu-instructions">LEERTASTE / W / &uarr; &mdash; Springen &nbsp;&middot;&nbsp; Doppelsprung m&ouml;glich<br>
     Auf Feinde dr&uuml;ckerspringen &nbsp;&middot;&nbsp; M&uuml;nzen &amp; Sterne sammeln<br>
     ESC &mdash; Men&uuml; &nbsp;&middot;&nbsp; P &mdash; Pause</p>
@@ -134,6 +134,12 @@ btn, .playBtn {
         <span class="cname" id="cname-cupcake">CUPCAKE</span>
       </div>
     </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">
+      <button class="secBtn" onclick="showHiScores()">&#127942; <span id="btn-hs">Bestenliste</span></button>
+      <button class="secBtn" id="sound-btn" onclick="toggleSound()">&#128264; <span id="sound-label">Sound: AUS</span></button>
+      <button class="secBtn" onclick="showSettings()">&#9881; <span id="btn-set">Einstellungen</span></button>
+      <button class="secBtn" onclick="showHelp()">&#10067; <span id="btn-help">Anleitung</span></button>
+    </div>
     <button class="playBtn" id="play-btn" onclick="startGame()">&#9654; SPIELEN</button>
   </div>
   <div id="screen-over" style="display:none">
@@ -147,6 +153,49 @@ btn, .playBtn {
     <button class="playBtn" id="retry-btn" onclick="startGame()">&#x1F504; NOCHMAL</button>
     <button class="secBtn" id="over-menu-btn" onclick="showMenu()">&#8592; MEN&Uuml;</button>
   </div>
+  <!-- Highscore Screen -->
+  <div id="screen-hiscores" style="display:none">
+    <h1 style="font-size:1.8em;margin-bottom:16px">&#127942; BESTENLISTE</h1>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center">
+      <div style="background:rgba(255,255,255,0.04);border:1px solid #222;border-radius:12px;padding:16px 24px;min-width:140px">
+        <div style="color:#7ee8fa;font-size:0.75em;letter-spacing:2px;margin-bottom:8px">ENDLESS</div>
+        <div id="hi5-endless"></div>
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid #222;border-radius:12px;padding:16px 24px;min-width:140px">
+        <div style="color:#f97316;font-size:0.75em;letter-spacing:2px;margin-bottom:8px">BLITZ</div>
+        <div id="hi5-blitz"></div>
+      </div>
+    </div>
+    <button class="secBtn" style="margin-top:20px" onclick="showMenu()">&#8592; Zur&uuml;ck</button>
+  </div>
+
+  <!-- Settings Screen -->
+  <div id="screen-settings" style="display:none">
+    <h1 style="font-size:1.8em;margin-bottom:16px">&#9881; EINSTELLUNGEN</h1>
+    <div style="display:flex;flex-direction:column;gap:14px;align-items:center;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="color:#aaa;font-size:0.85em;min-width:120px">Schwierigkeit</span>
+        <button class="secBtn" onclick="cycleDiff()" id="diff-btn">Normal</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="color:#aaa;font-size:0.85em;min-width:120px">Lautst&auml;rke</span>
+        <input type="range" id="vol-slider" min="0" max="100" value="70" style="width:120px" oninput="setVolume(this.value)">
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="color:#aaa;font-size:0.85em;min-width:120px">Partikel</span>
+        <button class="secBtn" onclick="toggleParticles()" id="parts-btn">An</button>
+      </div>
+    </div>
+    <button class="secBtn" onclick="showMenu()">&#8592; Zur&uuml;ck</button>
+  </div>
+
+  <!-- Help Screen -->
+  <div id="screen-help" style="display:none">
+    <h1 style="font-size:1.6em;margin-bottom:10px">&#10067; ANLEITUNG</h1>
+    <div id="help-content" style="color:#aaa;font-size:0.78em;line-height:1.9;max-width:500px;text-align:left;margin:0 auto 16px"></div>
+    <button class="secBtn" onclick="showMenu()">&#8592; Zur&uuml;ck</button>
+  </div>
+
   <div id="screen-pause" style="display:none">
     <h1 style="font-size:2em" id="pause-title">PAUSE</h1>
     <p style="margin:16px 0" id="pause-sub">Spiel pausiert</p>
@@ -282,6 +331,74 @@ const JV     = -12.5;
 const BSPD   = 4.8;
 const PW = 34, PH = 50;
 
+// ── Sound (Web Audio API)
+let soundEnabled = false;
+let masterVolume = 0.7;
+let audioCtx = null;
+function getAudioCtx() {
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  if(!soundEnabled) return;
+  try {
+    const ac = getAudioCtx();
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    if(type==='jump') {
+      o.type='sine'; o.frequency.setValueAtTime(300,ac.currentTime);
+      o.frequency.linearRampToValueAtTime(600,ac.currentTime+0.1);
+      g.gain.setValueAtTime(0.18*masterVolume,ac.currentTime);
+      g.gain.linearRampToValueAtTime(0,ac.currentTime+0.15);
+      o.start(); o.stop(ac.currentTime+0.15);
+    } else if(type==='coin') {
+      o.type='triangle'; o.frequency.setValueAtTime(880,ac.currentTime);
+      o.frequency.linearRampToValueAtTime(1320,ac.currentTime+0.08);
+      g.gain.setValueAtTime(0.15*masterVolume,ac.currentTime);
+      g.gain.linearRampToValueAtTime(0,ac.currentTime+0.12);
+      o.start(); o.stop(ac.currentTime+0.12);
+    } else if(type==='stomp') {
+      o.type='square'; o.frequency.setValueAtTime(200,ac.currentTime);
+      o.frequency.linearRampToValueAtTime(80,ac.currentTime+0.12);
+      g.gain.setValueAtTime(0.2*masterVolume,ac.currentTime);
+      g.gain.linearRampToValueAtTime(0,ac.currentTime+0.15);
+      o.start(); o.stop(ac.currentTime+0.15);
+    } else if(type==='gameover') {
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(440,ac.currentTime);
+      o.frequency.linearRampToValueAtTime(110,ac.currentTime+0.6);
+      g.gain.setValueAtTime(0.2*masterVolume,ac.currentTime);
+      g.gain.linearRampToValueAtTime(0,ac.currentTime+0.7);
+      o.start(); o.stop(ac.currentTime+0.7);
+    }
+  } catch(e){}
+}
+
+// ── Highscores Top5
+let hiTop5 = { endless:[], blitz:[] };
+function loadHiScores() {
+  try {
+    const d = JSON.parse(localStorage.getItem('jrHiTop5')||'{}');
+    hiTop5.endless = d.endless||[];
+    hiTop5.blitz   = d.blitz||[];
+  } catch(e){}
+}
+function saveHiScores() {
+  try { localStorage.setItem('jrHiTop5', JSON.stringify(hiTop5)); } catch(e){}
+}
+function addHiScore(mode, sc) {
+  hiTop5[mode].push(sc);
+  hiTop5[mode].sort((a,b)=>b-a);
+  hiTop5[mode] = hiTop5[mode].slice(0,5);
+  saveHiScores();
+}
+loadHiScores();
+
+// ── Settings
+let settingParticles = true;
+let settingDifficulty = 1; // 0=easy,1=normal,2=hard
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let state     = 'menu';   // menu | play | pause | dead | over
 let gameMode  = 'endless';
@@ -356,6 +473,104 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { KEYS[e.code]=false; });
 C.addEventListener('pointerdown', e => { e.preventDefault(); doJump(); });
+
+function showScreen(name) {
+  ['menu','over','hiscores','settings','help','pause'].forEach(s => {
+    const el = document.getElementById('screen-'+s);
+    if(el) el.style.display = (s===name) ? '' : 'none';
+  });
+  UI.classList.remove('hidden');
+  const bb = document.getElementById('back-btn');
+  if(bb) bb.style.display = (name==='menu') ? 'none' : 'block';
+}
+
+function showMenu() {
+  state = 'menu';
+  setBackBtn(false);
+  showScreen('menu');
+  drawPreviews();
+}
+
+function showHiScores() {
+  showScreen('hiscores');
+  const medals = ['🥇','🥈','🥉','4.','5.'];
+  ['endless','blitz'].forEach(mode => {
+    const el = document.getElementById('hi5-'+mode);
+    if(!el) return;
+    if(!hiTop5[mode]||hiTop5[mode].length===0) {
+      el.innerHTML = '<div style="color:#444;font-size:0.8em">–</div>';
+    } else {
+      el.innerHTML = hiTop5[mode].map((s,i)=>
+        `<div style="display:flex;justify-content:space-between;gap:16px;padding:3px 0;font-size:0.85em">
+          <span style="color:#666">${medals[i]||''}</span>
+          <span style="color:#fff;font-weight:700">${Math.floor(s/10)}</span>
+        </div>`).join('');
+    }
+  });
+}
+
+function showSettings() {
+  showScreen('settings');
+  const diffNames = ['Leicht','Normal','Schwer'];
+  const diffBtn = document.getElementById('diff-btn');
+  if(diffBtn) diffBtn.textContent = diffNames[settingDifficulty];
+  const partsBtn = document.getElementById('parts-btn');
+  if(partsBtn) partsBtn.textContent = settingParticles ? 'An' : 'Aus';
+}
+
+function showHelp() {
+  showScreen('help');
+  const hc = document.getElementById('help-content');
+  if(hc) hc.innerHTML = lang==='de' ?
+    '<b>Steuerung:</b><br>&nbsp;• LEERTASTE / W / ↑ — Springen (Doppelsprung möglich)<br>&nbsp;• ESC — Menü &nbsp;·&nbsp; P — Pause<br>&nbsp;• Auf Feinde springen = Stompen<br><br><b>Sammeln:</b><br>&nbsp;• 🪙 Münzen — +50 Punkte<br>&nbsp;• ⭐ Stern — Star-Power (unbesiegbar!)<br>&nbsp;• S Schild — ein Treffer gratis<br>&nbsp;• T Zeitlupe — alles langsamer<br>&nbsp;• M Magnet — Münzen anziehen<br><br><b>Feinde:</b><br>&nbsp;• Goomba, Schildkröte, Vogel, Geist<br><br><b>Modi:</b><br>&nbsp;• Endless — so weit wie möglich<br>&nbsp;• Blitz — 60 Sek., max. Münzen' :
+    '<b>Controls:</b><br>&nbsp;• SPACE / W / ↑ — Jump (double jump possible)<br>&nbsp;• ESC — Menu &nbsp;·&nbsp; P — Pause<br>&nbsp;• Jump on enemies to stomp them<br><br><b>Collectibles:</b><br>&nbsp;• 🪙 Coins — +50 points<br>&nbsp;• ⭐ Star — Star Power (invincible!)<br>&nbsp;• S Shield — absorbs one hit<br>&nbsp;• T Slow — everything slows down<br>&nbsp;• M Magnet — attract coins<br><br><b>Enemies:</b><br>&nbsp;• Goomba, Turtle, Bird, Ghost<br><br><b>Modes:</b><br>&nbsp;• Endless — go as far as possible<br>&nbsp;• Blitz — 60 sec, max coins';
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const lbl = document.getElementById('sound-label');
+  if(lbl) lbl.textContent = soundEnabled ? 'Sound: AN' : 'Sound: AUS';
+  if(soundEnabled) { getAudioCtx(); playSound('coin'); }
+}
+
+function cycleDiff() {
+  settingDifficulty = (settingDifficulty+1) % 3;
+  const names = ['Leicht','Normal','Schwer'];
+  const diffBtn = document.getElementById('diff-btn');
+  if(diffBtn) diffBtn.textContent = names[settingDifficulty];
+}
+
+function toggleParticles() {
+  settingParticles = !settingParticles;
+  const partsBtn = document.getElementById('parts-btn');
+  if(partsBtn) partsBtn.textContent = settingParticles ? 'An' : 'Aus';
+}
+
+function setVolume(val) {
+  masterVolume = val / 100;
+}
+
+function endGame() {
+  state = 'over';
+  if(hi[gameMode] < score) hi[gameMode] = score;
+  if(gameMode==='endless'||gameMode==='blitz') addHiScore(gameMode, score);
+  setBackBtn(false);
+  showScreen('over');
+  const titleEl = document.getElementById('over-title');
+  if(titleEl) {
+    if(gameMode==='blitz') { titleEl.textContent='ZEIT!'; titleEl.style.color='#f97316'; }
+    else { titleEl.textContent='GAME OVER'; titleEl.style.color='#ff6b6b'; }
+  }
+  const subEl = document.getElementById('over-sub');
+  if(subEl) subEl.textContent = gameMode==='blitz' ? t().overBlitz : t().overEndless;
+  const gs = document.getElementById('go-score');
+  if(gs) gs.textContent = Math.floor(score/10);
+  const gh = document.getElementById('go-hi');
+  if(gh) gh.textContent = Math.floor(hi[gameMode]/10);
+  const gc = document.getElementById('go-coins');
+  if(gc) gc.textContent = coinCount;
+  playSound('gameover');
+}
 
 function doJump() {
   if (state!=='play' || !P || P.dead) return;
@@ -1334,7 +1549,7 @@ function drawHUD() {
   ctx.beginPath(); ctx.roundRect(W-72,H-29,Math.max(4,pct*50),12,3); ctx.fill();
 }
 
-// ── Game flow ─────────────────────────────────────────────────────────────────
+// ── REMOVED_DUPLICATE ─────────────────────────────────────────────────────────────────
 function showScreen(name) {
   UI.classList.remove('hidden');
   ['menu','over','pause'].forEach(s=>{
