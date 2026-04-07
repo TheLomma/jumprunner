@@ -82,6 +82,7 @@ canvas { display:block; position:fixed; top:0; left:0; z-index:0; width:100vw; h
 .modeBtn .icon { font-size:1.1em; display:block; margin-bottom:1px; }
 .modeBtn .name { font-weight:800; font-size:0.85em; letter-spacing:1px; color:#7ee8fa; }
 .modeBtn .desc { font-size:0.62em; color:#666; margin-top:2px; line-height:1.3; }
+.screen-menu-layout { width:100%; display:flex; flex-direction:column; align-items:center; gap:20px; }
 .charSelect { display:flex; gap:4px; flex-wrap:nowrap; justify-content:center; width:100%; box-sizing:border-box; padding:2px 0; overflow:hidden; }
 .charBtn {
   background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.12);
@@ -143,9 +144,9 @@ btn, .playBtn {
 </head>
 <body>
 <div id="ui">
-  <div id="screen-menu" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;">
+  <div id="screen-menu" class="screen-menu-layout">
     <h1>JUMP RUNNER</h1>
-    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.7</div>
+    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.8</div>
     
     <p id="menu-instructions" style="padding:0 8px;overflow-wrap:break-word;word-break:break-word;">LEERTASTE / W / &uarr; &mdash; Springen &middot; Doppelsprung m&ouml;glich<br>Auf Feinde springen &middot; M&uuml;nzen &amp; Sterne sammeln<br>ESC &mdash; Men&uuml; &middot; P &mdash; Pause</p>
     <div class="modes">
