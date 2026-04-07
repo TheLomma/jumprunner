@@ -3,7 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#07071a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jump Runner">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Jump Runner</title>
+<script>
+(function(){
+  // Generate PWA icon as data URL via offscreen canvas
+  var ic=document.createElement('canvas'); ic.width=512; ic.height=512;
+  var x=ic.getContext('2d');
+  // Background
+  var g=x.createLinearGradient(0,0,512,512);
+  g.addColorStop(0,'#0d0820'); g.addColorStop(1,'#1a0f3c');
+  x.fillStyle=g; x.beginPath(); x.roundRect(0,0,512,512,80); x.fill();
+  // Glow circle
+  var g2=x.createRadialGradient(256,256,60,256,256,240);
+  g2.addColorStop(0,'rgba(126,232,250,0.18)'); g2.addColorStop(1,'rgba(126,232,250,0)');
+  x.fillStyle=g2; x.beginPath(); x.arc(256,256,240,0,Math.PI*2); x.fill();
+  // Letter J
+  x.font='bold 320px sans-serif'; x.textAlign='center'; x.textBaseline='middle';
+  var tg=x.createLinearGradient(100,100,400,400);
+  tg.addColorStop(0,'#7ee8fa'); tg.addColorStop(1,'#80ff72');
+  x.fillStyle=tg; x.fillText('J',256,270);
+  // Star accent
+  x.fillStyle='#ffd700';
+  function star(cx,cy,r,n){
+    x.beginPath();
+    for(var i=0;i<n*2;i++){
+      var a=i*Math.PI/n-Math.PI/2, rv=i%2===0?r:r*0.42;
+      i===0?x.moveTo(cx+Math.cos(a)*rv,cy+Math.sin(a)*rv):x.lineTo(cx+Math.cos(a)*rv,cy+Math.sin(a)*rv);
+    }
+    x.closePath(); x.fill();
+  }
+  star(390,130,38,5);
+  star(140,110,22,5);
+  // Inject apple-touch-icon + manifest
+  var dataUrl=ic.toDataURL('image/png');
+  var link=document.createElement('link');
+  link.rel='apple-touch-icon'; link.href=dataUrl;
+  document.head.appendChild(link);
+  // Inline manifest
+  var manifest={name:'Jump Runner',short_name:'JumpRunner',start_url:'.',display:'standalone',background_color:'#07071a',theme_color:'#07071a',icons:[{src:dataUrl,sizes:'512x512',type:'image/png'}]};
+  var mblob=new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+  var mlink=document.createElement('link');
+  mlink.rel='manifest'; mlink.href=URL.createObjectURL(mblob);
+  document.head.appendChild(mlink);
+})();
+</script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#07071a; display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; font-family:sans-serif; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; }
