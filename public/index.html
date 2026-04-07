@@ -54,21 +54,24 @@
 </script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#07071a; display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; font-family:sans-serif; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; }
+body { background:#07071a; display:flex; align-items:center; justify-content:center; min-height:100vh; min-height:100dvh; font-family:sans-serif; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; max-width:100vw; }
 canvas { display:block; border-radius:10px; box-shadow:0 0 40px rgba(126,232,250,0.15); }
 #ui {
   position:fixed; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
+  align-items:center; justify-content:flex-start;
   background:rgba(5,5,25,0.93); color:#fff;
-  text-align:center; z-index:10; padding:20px;
+  text-align:center; z-index:10; padding:10px 12px 14px;
+  overflow-y:auto; overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  max-width:100vw; box-sizing:border-box;
 }
 #ui.hidden { display:none; }
-#ui h1 { font-size:clamp(2em,8vw,3.2em); font-weight:900; letter-spacing:5px;
+#ui h1 { font-size:clamp(1.4em,5.5vw,2.8em); font-weight:900; letter-spacing:3px;
   background:linear-gradient(135deg,#7ee8fa,#80ff72);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   margin-bottom:4px; }
 #ui .sub { color:#444; letter-spacing:2px; font-size:0.6em; text-transform:uppercase; margin-bottom:4px; }
-#ui p { color:#888; font-size:clamp(0.7em,2.5vw,0.85em); line-height:1.8; margin-bottom:12px; }
+#ui p { color:#888; font-size:clamp(0.6em,1.8vw,0.78em); line-height:1.5; margin-bottom:6px; max-width:100%; word-break:keep-all; }
 .modes { display:flex; gap:5px; flex-wrap:nowrap; justify-content:center; margin-bottom:6px; width:100%; }
 .modeBtn {
   background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.12);
@@ -79,7 +82,7 @@ canvas { display:block; border-radius:10px; box-shadow:0 0 40px rgba(126,232,250
 .modeBtn .icon { font-size:1.1em; display:block; margin-bottom:1px; }
 .modeBtn .name { font-weight:800; font-size:0.85em; letter-spacing:1px; color:#7ee8fa; }
 .modeBtn .desc { font-size:0.62em; color:#666; margin-top:2px; line-height:1.3; }
-.charSelect { display:flex; gap:4px; flex-wrap:nowrap; justify-content:center; margin-bottom:6px; width:100%; overflow-x:auto; padding-bottom:2px; }
+.charSelect { display:flex; gap:4px; flex-wrap:nowrap; justify-content:center; margin-bottom:6px; width:100%; max-width:100%; overflow-x:auto; padding:2px 4px 4px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; box-sizing:border-box; }
 .charBtn {
   background:rgba(255,255,255,0.04); border:2px solid rgba(255,255,255,0.12);
   border-radius:14px; padding:10px 14px; cursor:pointer; color:#fff;
@@ -88,7 +91,7 @@ canvas { display:block; border-radius:10px; box-shadow:0 0 40px rgba(126,232,250
 .charBtn:hover, .charBtn.active { border-color:#80ff72; background:rgba(128,255,114,0.07); }
 .charBtn .cicon { font-size:2em; display:block; margin-bottom:4px; }
 .charBtn .cname { font-weight:800; font-size:clamp(0.48em,1.8vw,0.65em); letter-spacing:0.5px; color:#80ff72; }
-.charBtn .cpreview { width:clamp(50px,12vw,70px); height:clamp(65px,15vw,90px); display:block; margin:0 auto 4px; }
+.charBtn .cpreview { width:clamp(40px,10vw,60px); height:clamp(50px,12vw,75px); display:block; margin:0 auto 2px; }
 btn, .playBtn {
   background:linear-gradient(135deg,#7ee8fa,#80ff72);
   color:#0d0d2b; border:none; border-radius:40px;
@@ -140,12 +143,10 @@ btn, .playBtn {
 </head>
 <body>
 <div id="ui">
-  <div id="screen-menu">
+  <div id="screen-menu" style="width:100%;max-width:100%;overflow-x:hidden;">
     <h1>JUMP RUNNER</h1>
     <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.4</div>
-    <p id="menu-instructions">LEERTASTE / W / &uarr; &mdash; Springen &nbsp;&middot;&nbsp; Doppelsprung m&ouml;glich<br>
-    Auf Feinde dr&uuml;ckerspringen &nbsp;&middot;&nbsp; M&uuml;nzen &amp; Sterne sammeln<br>
-    ESC &mdash; Men&uuml; &nbsp;&middot;&nbsp; P &mdash; Pause</p>
+    <p id="menu-instructions" style="padding:0 8px;overflow-wrap:break-word;word-break:break-word;">LEERTASTE / W / &uarr; &mdash; Springen &middot; Doppelsprung m&ouml;glich<br>Auf Feinde springen &middot; M&uuml;nzen &amp; Sterne sammeln<br>ESC &mdash; Men&uuml; &middot; P &mdash; Pause</p>
     <div class="modes">
       <div class="modeBtn active" onclick="selectMode('endless')" id="m-endless">
         <span class="icon">&#127939;</span>
