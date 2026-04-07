@@ -145,8 +145,8 @@ btn, .playBtn {
 <div id="ui">
   <div id="screen-menu" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;">
     <h1>JUMP RUNNER</h1>
-    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.5</div>
-    <div style="height:10px"></div>
+    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.6</div>
+    <div style="height:32px"></div>
     <p id="menu-instructions" style="padding:0 8px;overflow-wrap:break-word;word-break:break-word;">LEERTASTE / W / &uarr; &mdash; Springen &middot; Doppelsprung m&ouml;glich<br>Auf Feinde springen &middot; M&uuml;nzen &amp; Sterne sammeln<br>ESC &mdash; Men&uuml; &middot; P &mdash; Pause</p>
     <div class="modes">
       <div class="modeBtn active" onclick="selectMode('endless')" id="m-endless">
@@ -378,7 +378,7 @@ let W, H, GY;
 function resize() {
   W = C.width  = window.innerWidth;
   H = C.height = window.innerHeight;
-  GY = H - Math.round(H * 0.15); // ground at 85% of screen height
+  GY = H - Math.round(H * 0.25); // ground at 75% of screen height
 }
 window.addEventListener('resize', resize);
 resize();
