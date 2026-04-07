@@ -55,7 +55,7 @@
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#07071a; font-family:sans-serif; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; }
-canvas { display:block; border-radius:10px; box-shadow:0 0 40px rgba(126,232,250,0.15); position:fixed; top:0; left:0; z-index:0; }
+canvas { display:block; position:fixed; top:0; left:0; z-index:0; width:100vw; height:100vh; }
 #ui {
   position:fixed; inset:0; display:flex; flex-direction:column;
   align-items:center; justify-content:space-evenly;
@@ -145,7 +145,8 @@ btn, .playBtn {
 <div id="ui">
   <div id="screen-menu" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;">
     <h1>JUMP RUNNER</h1>
-    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.4</div>
+    <div class="sub">Super-Platformer Edition &nbsp;·&nbsp; v1.5</div>
+    <div style="height:10px"></div>
     <p id="menu-instructions" style="padding:0 8px;overflow-wrap:break-word;word-break:break-word;">LEERTASTE / W / &uarr; &mdash; Springen &middot; Doppelsprung m&ouml;glich<br>Auf Feinde springen &middot; M&uuml;nzen &amp; Sterne sammeln<br>ESC &mdash; Men&uuml; &middot; P &mdash; Pause</p>
     <div class="modes">
       <div class="modeBtn active" onclick="selectMode('endless')" id="m-endless">
@@ -160,28 +161,30 @@ btn, .playBtn {
       </div>
 
     </div>
-    <div style="color:rgba(255,255,255,0.28);font-size:0.7em;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px" id="char-label">FIGUR WÄHLEN</div>
-    <div class="charSelect" id="char-select">
-      <div class="charBtn active" onclick="selectChar('wizard')" id="ch-wizard">
-        <span class="cicon">🧙</span>
-        <span class="cname" id="cname-wizard">ZAUBERER</span>
-      </div>
-      <div class="charBtn" onclick="selectChar('frog')" id="ch-frog">
-        <span class="cicon">🐸</span>
-        <span class="cname" id="cname-frog">FROGGY</span>
-      </div>
-      <div class="charBtn" onclick="selectChar('robot')" id="ch-robot">
-        <span class="cicon">🤖</span>
-        <span class="cname" id="cname-robot">ROBO-X</span>
-      </div>
-      <div class="charBtn" onclick="selectChar('fox')" id="ch-fox">
-        <span class="cicon">🦊</span>
-        <span class="cname" id="cname-fox">FOXY</span>
-      </div>
-      <div class="charBtn" onclick="selectChar('cupcake')" id="ch-cupcake">
-        <span class="cicon">🧁</span>
-        <span class="cname" id="cname-cupcake">CUPCAKE</span>
-      </div>
+    <div style="display:flex;align-items:center;gap:10px;justify-content:center;width:100%">
+      <label style="color:rgba(255,255,255,0.4);font-size:0.62em;letter-spacing:2px;text-transform:uppercase;white-space:nowrap" id="char-label">FIGUR</label>
+      <select id="char-select" onchange="selectChar(this.value)" style="
+        background:#0d0820;
+        color:#80ff72;
+        border:2px solid rgba(128,255,114,0.4);
+        border-radius:12px;
+        padding:8px 14px;
+        font-size:0.85em;
+        font-weight:700;
+        letter-spacing:1px;
+        cursor:pointer;
+        outline:none;
+        -webkit-appearance:none;
+        appearance:none;
+        width:180px;
+        text-align:center;
+      ">
+        <option value="wizard">🧙 ZAUBERER</option>
+        <option value="frog">🐸 FROGGY</option>
+        <option value="robot">🤖 ROBO-X</option>
+        <option value="fox">🦊 FOXY</option>
+        <option value="cupcake">🧁 CUPCAKE</option>
+      </select>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;width:100%;box-sizing:border-box;">
       <button class="secBtn" onclick="showHiScores()">&#127942; <span id="btn-hs">Bestenliste</span></button>
@@ -267,8 +270,8 @@ const CHAR_NAMES = {
 };
 function selectChar(id) {
   selectedChar = id;
-  document.querySelectorAll('.charBtn').forEach(b => b.classList.remove('active'));
-  document.getElementById('ch-'+id).classList.add('active');
+  const sel = document.getElementById('char-select');
+  if(sel) sel.value = id;
 }
 
 // ── Language ─────────────────────────────────────────────────────────────────
@@ -314,12 +317,18 @@ function toggleLang() {
 
 function applyLang() {
   const l = t();
-  // char labels
-  ['wizard','frog','robot','fox','cupcake'].forEach(id => {
-    const el = document.getElementById('cname-'+id);
-    if(el) el.textContent = CHAR_NAMES[lang][id];
-  });
-  document.getElementById('char-label').textContent = lang==='de' ? 'FIGUR WÄHLEN' : 'CHOOSE CHARACTER';
+  // char label
+  const charLbl = document.getElementById('char-label');
+  if(charLbl) charLbl.textContent = lang==='de' ? 'FIGUR' : 'CHARACTER';
+  // update dropdown options
+  const sel = document.getElementById('char-select');
+  if(sel) {
+    const icons = ['🧙','🐸','🤖','🦊','🧁'];
+    const keys  = ['wizard','frog','robot','fox','cupcake'];
+    keys.forEach((k,i) => {
+      if(sel.options[i]) sel.options[i].text = icons[i]+' '+CHAR_NAMES[lang][k];
+    });
+  }
   document.getElementById('lang-btn').textContent = l.langBtn;
   document.getElementById('menu-instructions').innerHTML = l.instructions;
   document.getElementById('mode-endless-name').textContent = l.endlessName;
@@ -367,9 +376,9 @@ const TOAST = document.getElementById('toast');
 // ── Sizing ────────────────────────────────────────────────────────────────────
 let W, H, GY;
 function resize() {
-  W = C.width  = Math.min(window.innerWidth,  820);
-  H = C.height = Math.min(window.innerHeight, 460);
-  GY = H - 72;
+  W = C.width  = window.innerWidth;
+  H = C.height = window.innerHeight;
+  GY = H - Math.round(H * 0.15); // ground at 85% of screen height
 }
 window.addEventListener('resize', resize);
 resize();
